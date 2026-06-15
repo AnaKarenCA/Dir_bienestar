@@ -29,7 +29,7 @@ class DashboardController extends Controller
         $usuario = $usuarioModel->obtenerPorId($_SESSION['usuario_id']);
         $nombre = $usuario['nombre'] ?? $_SESSION['usuario_nombre'];
         $puesto = $usuario['puesto'] ?? '';
-        $responsable = trim($nombre . ($puesto ? ' - ' . $puesto : ''));
+        $responsable = $puesto ?: 'Usuario';
 
         // Pasar todo a la vista
         $this->view('dashboard/index', [

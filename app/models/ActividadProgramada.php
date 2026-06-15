@@ -19,4 +19,14 @@ class ActividadProgramada extends Model
         $stmt->execute([$unidadId]);
         return $stmt->fetchAll();
     }
+    public function obtenerTodasConCodigo()
+{
+    $stmt = $this->db->query("
+        SELECT id, CONCAT(codigo, ' - ', descripcion) as nombre
+        FROM Actividad_programada
+        ORDER BY codigo
+    ");
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
 }

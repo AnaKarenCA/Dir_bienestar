@@ -171,6 +171,8 @@
     </style>
 </head>
 <body>
+    <?php include_once APPROOT . '/views/partials/menu.php'; ?>
+
 <div class="dashboard">
     <div class="logos-col">
 <img src="/img/tol.png" alt="Toluca">
@@ -356,7 +358,6 @@
     const cpGroup = document.getElementById('cp_group');
     const cpSelect = document.getElementById('cp_select');
 
-    // Mostrar/ocultar "Otro lugar"
     lugarSelect.addEventListener('change', function() {
         if (this.value === '0') {
             otroLugarContainer.classList.remove('hidden');
@@ -368,7 +369,6 @@
         }
     });
 
-    // Cargar actividades al cambiar unidad (solo descripción, sin código)
     unidadSelect.addEventListener('change', async function() {
         const unidadId = this.value;
         if (!unidadId) {
@@ -414,7 +414,6 @@
         }
     });
 
-    // Cargar subdelegaciones al cambiar delegación
     delegacionSelect.addEventListener('change', async function() {
         const delegacionId = this.value;
         subdelegacionSelect.innerHTML = '<option value="">Cargando...</option>';
@@ -445,7 +444,7 @@
         }
     });
 
-    // Cargar CPs al seleccionar subdelegación (usando id como value y cp como texto)
+    // 🔹 Cargar CPs y seleccionar automáticamente el primero
     subdelegacionSelect.addEventListener('change', async function() {
         const subdelegacionId = this.value;
         if (!subdelegacionId) {
@@ -463,14 +462,18 @@
                 cpSelect.innerHTML = '<option value="">No hay CPs registrados</option>';
                 cpSelect.required = false;
             } else {
-                let options = '<option value="">Seleccione CP</option>';
+                let options = '';
                 cps.forEach(cp => {
-                    // IMPORTANTE: value = id del código postal, texto = número de CP
                     options += `<option value="${cp.id}">${cp.cp}</option>`;
                 });
                 cpSelect.innerHTML = options;
                 cpSelect.required = true;
-                console.log('CPs cargados correctamente:', cps);
+                // Seleccionar automáticamente el primer CP
+                if (cpSelect.options.length > 0) {
+                    cpSelect.selectedIndex = 0;
+                    cpSelect.dispatchEvent(new Event('change'));
+                }
+                console.log('CPs cargados, seleccionado el primero:', cps);
             }
         } catch (error) {
             console.error('Error al cargar CPs:', error);
@@ -482,15 +485,11 @@
     function getFormData() {
         let lugar_id = lugarSelect.value;
         let otro_lugar = (lugar_id === '0') ? otroLugarInput.value.trim() : '';
-        // cp ahora es el id (entero) o null
         let cp = cpSelect.value ? cpSelect.value : null;
         let subdelegacion_id = subdelegacionSelect.value || null;
-        
-        // Si no hay subdelegación, el CP no aplica (forzamos null)
         if (!subdelegacion_id) {
             cp = null;
         }
-        
         return {
             responsable: document.getElementById('responsable').value,
             unidad_administrativa_id: unidadSelect.value,
@@ -503,7 +502,7 @@
             otro_lugar: otro_lugar,
             delegacion_id: delegacionSelect.value,
             subdelegacion_id: subdelegacion_id,
-            cp: cp,  // este es el id del código postal o null
+            cp: cp,
             calle: document.getElementById('calle').value,
             numero_exterior: document.getElementById('numero_exterior').value,
             numero_interior: document.getElementById('numero_interior').value || null,
@@ -538,15 +537,11 @@
         const container = document.getElementById('modalDataSummary');
         let lugarTexto = lugarSelect.options[lugarSelect.selectedIndex]?.text;
         if (data.lugar_id === '0') lugarTexto = `Otro: ${data.otro_lugar}`;
-        
-        // Obtener el texto del CP seleccionado (el número) para mostrar en el modal
         let cpTexto = 'No aplica';
         if (data.subdelegacion_id && data.cp) {
             cpTexto = cpSelect.options[cpSelect.selectedIndex]?.text || 'Seleccionado';
         }
-        
         let subTexto = subdelegacionSelect.options[subdelegacionSelect.selectedIndex]?.text || 'Ninguna';
-        
         container.innerHTML = `
             <div class="summary-row"><span class="summary-label">Responsable:</span><span>${escapeHtml(data.responsable)}</span></div>
             <div class="summary-row"><span class="summary-label">Unidad:</span><span>${escapeHtml(unidadSelect.options[unidadSelect.selectedIndex]?.text || '')}</span></div>
@@ -585,7 +580,6 @@
     }
 
     function closeModal() { modal.classList.remove('active'); }
-    
     function mostrarToast(msg, error = false) {
         let toast = document.querySelector('.toast-msg');
         if (!toast) {

@@ -25,10 +25,21 @@ class App
                     require_once APPROOT . '/controllers/DashboardController.php';
                     $this->controller = 'DashboardController';
                     break;
-                    case 'actividad':
-    require_once APPROOT . '/controllers/ActividadController.php';
-    $this->controller = 'ActividadController';
+                case 'actividad':
+                    require_once APPROOT . '/controllers/ActividadController.php';
+                    $this->controller = 'ActividadController';
+                    break;
+
+                case 'calendario':
+                    require_once APPROOT . '/controllers/CalendarioController.php';
+                    $this->controller = 'CalendarioController';
+                    break;
+
+                case 'reporte':
+    require_once APPROOT . '/controllers/ReporteController.php';
+    $this->controller = 'ReporteController';
     break;
+                
             }
         }
 
