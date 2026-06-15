@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario → Generador de PowerPoint (16 diapositivas)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        fieldset {
+            border: 1px solid #ccc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            background: #fefefe;
+        }
+        legend {
+            font-weight: bold;
+            font-size: 1.2em;
+            background: #2c3e50;
+            color: white;
+            padding: 6px 15px;
+            border-radius: 30px;
+        }
+        label {
+            display: block;
+            margin-top: 12px;
+            font-weight: 600;
+            color: #1e4663;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px 12px;
+            margin-top: 5px;
+            border: 1px solid #bdc3c7;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .row > div {
+            flex: 1;
+        }
+        button {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+            width: 100%;
+            transition: 0.2s;
+        }
+        button:hover {
+            background: #2ecc71;
+            transform: scale(1.01);
+        }
+        .table-dynamic {
+            margin-top: 15px;
+        }
+        .table-dynamic table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table-dynamic th, .table-dynamic td {
+            border: 1px solid #aaa;
+            padding: 6px;
+            text-align: left;
+        }
+        .add-row-btn {
+            background: #3498db;
+            margin-top: 10px;
+            width: auto;
+            padding: 6px 15px;
+            font-size: 0.9em;
+        }
+        .remove-row-btn {
+            background: #e67e22;
+            margin-left: 5px;
+        }
+        hr {
+            margin: 20px 0;
+        }
+        .note {
+            font-size: 0.8em;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1> Formulario para generación de PowerPoint (16 diapositivas)</h1>
+    <p>Completa todos los campos. Al final, haz clic en <strong>"Generar PowerPoint"</strong> y se descargará un archivo .pptx con exactamente 16 diapositivas.</p>
+
+    <form id="eventForm">
+        <!-- ==================== DATOS GENERALES Y PORTADA ==================== -->
+        <fieldset>
+            <legend>1. Portada y dirección</legend>
+            <label>🏢 Nombre de la dirección que realiza el evento *</label>
+            <input type="text" id="dir_nombre" required>
+
+            <label>🎉 Nombre del evento *</label>
+            <input type="text" id="evento_nombre" required>
+
+            <label>🖼️ Imagen de fondo (primera diapositiva) - formato imagen</label>
+            <input type="file" id="fondo_img" accept="image/*">
+
+            <label>🏷️ Logos obligatorios (arriba en portada) - puedes subir uno o dos</label>
+            <input type="file" id="logo1" accept="image/*">
+            <input type="file" id="logo2" accept="image/*" class="note" style="margin-top:5px">
+        </fieldset>
+
+        <!-- ==================== APROBACIONES ==================== -->
+        <fieldset>
+            <legend>2. Aprobación y firmas (Diapositiva 2)</legend>
+            <div class="row">
+                <div><label>Aprobado por:</label><input type="text" id="aprobado_por"></div>
+                <div><label>Responsable por:</label><input type="text" id="responsable_por"></div>
+            </div>
+            <div class="row">
+                <div><label>Fecha de entrega:</label><input type="date" id="fecha_entrega"></div>
+                <div><label>Realizó:</label><input type="text" id="realizo"></div>
+            </div>
+            <div class="row">
+                <div><label>Firma (nombre):</label><input type="text" id="firma_nombre"></div>
+                <div><label>Fecha del evento:</label><input type="date" id="fecha_evento"></div>
+            </div>
+        </fieldset>
+
+        <!-- ==================== D2 OBJETIVO Y BENEFICIARIOS ==================== -->
+        <fieldset>
+            <legend>3. D2: OBJETIVO Y BENEFICIARIOS</legend>
+            <label>📌 Línea de acción PbRM</label>
+            <input type="text" id="linea_accion">
+            <label>🎯 Objetivo del evento</label>
+            <textarea id="objetivo_evento"></textarea>
+            <label>👥 Número de Beneficiarios</label>
+            <input type="number" id="num_beneficiarios">
+        </fieldset>
+
+        <!-- ==================== D3 JUSTIFICACION ==================== -->
+        <fieldset>
+            <legend>4. D3: JUSTIFICACIÓN</legend>
+            <textarea id="justificacion" rows="4" placeholder="Escribe la justificación del evento..."></textarea>
+        </fieldset>
+
+        <!-- ==================== D4 GENERALES ==================== -->
+        <fieldset>
+            <legend>5. D4: GENERALES DEL EVENTO</legend>
+            <div class="row">
+                <div><label>Fecha:</label><input type="date" id="gen_fecha"></div>
+                <div><label>Hora:</label><input type="text" id="gen_hora" placeholder="Ej: 10:00 AM"></div>
+            </div>
+            <div class="row">
+                <div><label>Lugar:</label><input type="text" id="gen_lugar"></div>
+                <div><label>Vestimenta:</label><input type="text" id="gen_vestimenta"></div>
+            </div>
+            <div class="row">
+                <div><label>Duración del evento:</label><input type="text" id="gen_duracion" placeholder="Ej: 2 horas"></div>
+                <div><label>Coordinación del evento:</label><input type="text" id="gen_coordinacion"></div>
+            </div>
+            <label>Responsable del evento:</label>
+            <input type="text" id="gen_responsable">
+        </fieldset>
+
+        <!-- ==================== D5 UBICACIÓN ==================== -->
+        <fieldset>
+            <legend>6. D5: UBICACIÓN DEL EVENTO</legend>
+            <label>Dirección (texto):</label>
+            <input type="text" id="ubic_direccion">
+            <label>🔗 Link de Maps:</label>
+            <input type="url" id="ubic_link">
+            <label>📸 Foto del lugar (subir imagen):</label>
+            <input type="file" id="foto_lugar" accept="image/*">
+            <label>🗺️ Foto de Google Maps (subir captura):</label>
+            <input type="file" id="foto_maps" accept="image/*">
+        </fieldset>
+
+        <!-- ==================== D6 ORDEN DEL DÍA (TABLA DINÁMICA) ==================== -->
+        <fieldset>
+            <legend>7. D6: ORDEN DEL DÍA (Tabla programa protocolario)</legend>
+            <div id="agendaContainer">
+                <div class="table-dynamic">
+                    <table id="agendaTable">
+                        <thead>
+                            <tr><th>Hora</th><th>Actividad</th><th>Responsable</th><th>Duración</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="text" name="hora[]" placeholder="10:00"></td>
+                                <td><input type="text" name="actividad[]" placeholder="Bienvenida"></td>
+                                <td><input type="text" name="responsable[]" placeholder="Nombre"></td>
+                                <td><input type="text" name="duracion[]" placeholder="15 min"></td>
+                                <td><button type="button" class="remove-row-btn" onclick="removeRow(this)">❌</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button type="button" class="add-row-btn" onclick="addRow()">+ Añadir actividad</button>
+                </div>
+            </div>
+            <label>📌 Evento Protocolario (descripción adicional):</label>
+            <textarea id="evento_protocolario" rows="2" placeholder="Detalles del protocolo..."></textarea>
+            <label>⏱️ Fin del evento - Duración total del evento:</label>
+            <input type="text" id="duracion_total_evento" placeholder="Ej: 3 horas">
+        </fieldset>
+
+        <!-- ==================== D7 PRESIDIUM ==================== -->
+        <fieldset>
+            <legend>8. D7: PRESIDIUM</legend>
+            <label>Listado de invitados al presidium (un nombre por línea)</label>
+            <textarea id="presidium_lista" rows="4" placeholder="Ej: \nDr. Juan Pérez\nLic. María Gómez\n..."></textarea>
+        </fieldset>
+
+        <!-- ==================== D8 CROQUIS ==================== -->
+        <fieldset>
+            <legend>9. D8: CROQUIS DEL EVENTO</legend>
+            <label>📐 Imagen del croquis (plano, distribución):</label>
+            <input type="file" id="croquis_img" accept="image/*">
+            <label>🖥️ Pantalla / notas adicionales:</label>
+            <input type="text" id="croquis_pantalla" placeholder="Ej: Pantalla principal al fondo">
+        </fieldset>
+
+        <!-- ==================== D9 INVITADOS ==================== -->
+        <fieldset>
+            <legend>10. D9: INVITADOS - Integrantes de Cabildo</legend>
+            <textarea id="invitados_cabildo" rows="4" placeholder="Lista de integrantes de cabildo..."></textarea>
+        </fieldset>
+        <fieldset>
+            <legend>11. D9: INVITADOS - Integrantes de Gabinete</legend>
+            <textarea id="invitados_gabinete" rows="4" placeholder="Lista de integrantes de gabinete..."></textarea>
+        </fieldset>
+
+        <!-- ==================== D10 REQUERIMIENTOS (TRES ÁREAS) ==================== -->
+        <fieldset>
+            <legend>12. D10: REQUERIMIENTOS - Delegación Administrativa</legend>
+            <textarea id="req_administrativa" rows="3" placeholder="Requerimientos específicos..."></textarea>
+        </fieldset>
+        <fieldset>
+            <legend>13. D10: REQUERIMIENTOS - Coordinación Comunicación Social</legend>
+            <textarea id="req_comunicacion" rows="3" placeholder="Requerimientos de difusión, prensa..."></textarea>
+        </fieldset>
+        <fieldset>
+            <legend>14. D10: REQUERIMIENTOS - Dirección General de Administración</legend>
+            <textarea id="req_administracion" rows="3" placeholder="Requerimientos administrativos..."></textarea>
+        </fieldset>
+
+        <!-- ==================== D11 REQUERIMIENTOS FINALES + FIRMAS ==================== -->
+        <fieldset>
+            <legend>15-16. D11: Delegación Administrativa / Eventos y Ubicación + Firmas</legend>
+            <label>📌 Delegación Administrativa (requerimientos adicionales):</label>
+            <textarea id="del_admin_req" rows="2"></textarea>
+            <label>📍 Eventos y Ubicación:</label>
+            <div class="row">
+                <div><label>Día del evento:</label><input type="text" id="evento_dia"></div>
+                <div><label>Horario:</label><input type="text" id="evento_horario"></div>
+            </div>
+            <label>Ubicación exacta:</label>
+            <input type="text" id="evento_ubicacion">
+            <div class="row">
+                <div><label>Firma 1 (nombre):</label><input type="text" id="firma1"></div>
+                <div><label>Firma 2 (nombre):</label><input type="text" id="firma2"></div>
+            </div>
+        </fieldset>
+
+        <button type="button" id="generarPPT">🎯 GENERAR POWERPOINT (16 DIAPOSITIVAS)</button>
+    </form>
+</div>
+
+<script>
+    // Funciones para la tabla dinámica del orden del día
+    function addRow() {
+        const tbody = document.querySelector("#agendaTable tbody");
+        const newRow = document.createElement("tr");
+        newRow.innerHTML = `
+            <td><input type="text" name="hora[]" placeholder="Hora"></td>
+            <td><input type="text" name="actividad[]" placeholder="Actividad"></td>
+            <td><input type="text" name="responsable[]" placeholder="Responsable"></td>
+            <td><input type="text" name="duracion[]" placeholder="Duración"></td>
+            <td><button type="button" class="remove-row-btn" onclick="removeRow(this)">❌</button></td>
+        `;
+        tbody.appendChild(newRow);
+    }
+    function removeRow(btn) {
+        let row = btn.closest("tr");
+        if(document.querySelectorAll("#agendaTable tbody tr").length > 1) {
+            row.remove();
+        } else {
+            alert("Debe haber al menos una actividad en la agenda.");
+        }
+    }
+
+    // Helper: convertir archivo a base64
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            if (!file) resolve(null);
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Obtener datos de la tabla agenda
+    function getAgendaRows() {
+        const rows = [];
+        const tbodyRows = document.querySelectorAll("#agendaTable tbody tr");
+        tbodyRows.forEach(row => {
+            const inputs = row.querySelectorAll("input");
+            if(inputs.length >= 4) {
+                rows.push({
+                    hora: inputs[0].value,
+                    actividad: inputs[1].value,
+                    responsable: inputs[2].value,
+                    duracion: inputs[3].value
+                });
+            }
+        });
+        return rows;
+    }
+
+    // Generador principal
+    document.getElementById("generarPPT").addEventListener("click", async function() {
+        const PptxGenJS = window.PptxGenJS;
+        const pres = new PptxGenJS();
+        pres.layout = "LAYOUT_WIDE"; // 16:9
+
+        // ----------------------------- 1. LEER TODOS LOS CAMPOS -----------------------------
+        const dir_nombre = document.getElementById("dir_nombre").value;
+        const evento_nombre = document.getElementById("evento_nombre").value;
+        const fondoFile = document.getElementById("fondo_img").files[0];
+        const logo1File = document.getElementById("logo1").files[0];
+        const logo2File = document.getElementById("logo2").files[0];
+        
+        const aprobado_por = document.getElementById("aprobado_por").value;
+        const responsable_por = document.getElementById("responsable_por").value;
+        const fecha_entrega = document.getElementById("fecha_entrega").value;
+        const realizo = document.getElementById("realizo").value;
+        const firma_nombre = document.getElementById("firma_nombre").value;
+        const fecha_evento = document.getElementById("fecha_evento").value;
+
+        const linea_accion = document.getElementById("linea_accion").value;
+        const objetivo_evento = document.getElementById("objetivo_evento").value;
+        const num_beneficiarios = document.getElementById("num_beneficiarios").value;
+
+        const justificacion = document.getElementById("justificacion").value;
+
+        const gen_fecha = document.getElementById("gen_fecha").value;
+        const gen_hora = document.getElementById("gen_hora").value;
+        const gen_lugar = document.getElementById("gen_lugar").value;
+        const gen_vestimenta = document.getElementById("gen_vestimenta").value;
+        const gen_duracion = document.getElementById("gen_duracion").value;
+        const gen_coordinacion = document.getElementById("gen_coordinacion").value;
+        const gen_responsable = document.getElementById("gen_responsable").value;
+
+        const ubic_direccion = document.getElementById("ubic_direccion").value;
+        const ubic_link = document.getElementById("ubic_link").value;
+        const fotoLugarFile = document.getElementById("foto_lugar").files[0];
+        const fotoMapsFile = document.getElementById("foto_maps").files[0];
+
+        const agendaRows = getAgendaRows();
+        const evento_protocolario = document.getElementById("evento_protocolario").value;
+        const duracion_total_evento = document.getElementById("duracion_total_evento").value;
+
+        const presidium_lista = document.getElementById("presidium_lista").value;
+        const croquisFile = document.getElementById("croquis_img").files[0];
+        const croquis_pantalla = document.getElementById("croquis_pantalla").value;
+
+        const invitados_cabildo = document.getElementById("invitados_cabildo").value;
+        const invitados_gabinete = document.getElementById("invitados_gabinete").value;
+
+        const req_administrativa = document.getElementById("req_administrativa").value;
+        const req_comunicacion = document.getElementById("req_comunicacion").value;
+        const req_administracion = document.getElementById("req_administracion").value;
+
+        const del_admin_req = document.getElementById("del_admin_req").value;
+        const evento_dia = document.getElementById("evento_dia").value;
+        const evento_horario = document.getElementById("evento_horario").value;
+        const evento_ubicacion = document.getElementById("evento_ubicacion").value;
+        const firma1 = document.getElementById("firma1").value;
+        const firma2 = document.getElementById("firma2").value;
+
+        // Imágenes a Base64
+        const fondoBase64 = await fileToBase64(fondoFile);
+        const logo1Base64 = await fileToBase64(logo1File);
+        const logo2Base64 = await fileToBase64(logo2File);
+        const fotoLugarBase64 = await fileToBase64(fotoLugarFile);
+        const fotoMapsBase64 = await fileToBase64(fotoMapsFile);
+        const croquisBase64 = await fileToBase64(croquisFile);
+
+        // --- SLIDE 1: PORTADA ---
+        let s1 = pres.addSlide();
+        if (fondoBase64) s1.background = { data: fondoBase64 };
+        // Logos (arriba a la izquierda y derecha opcional)
+        if (logo1Base64) s1.addImage({ data: logo1Base64, x: 0.3, y: 0.2, w: 1.2, h: 0.8 });
+        if (logo2Base64) s1.addImage({ data: logo2Base64, x: 8.5, y: 0.2, w: 1.2, h: 0.8 });
+        s1.addText(dir_nombre || "Dirección", { x: 0.5, y: 2, fontSize: 28, bold: true, align: "center", w: 9 });
+        s1.addText(evento_nombre || "Nombre del evento", { x: 0.5, y: 3, fontSize: 24, align: "center", w: 9 });
+
+        // --- SLIDE 2: APROBACIÓN Y FIRMAS ---
+        let s2 = pres.addSlide();
+        s2.addText("APROBACIÓN Y RESPONSABLES", { x: 0.5, y: 0.3, fontSize: 22, bold: true });
+        s2.addText(`Aprobado por: ${aprobado_por}`, { x: 0.5, y: 1.2 });
+        s2.addText(`Responsable por: ${responsable_por}`, { x: 0.5, y: 1.8 });
+        s2.addText(`Fecha de entrega: ${fecha_entrega}`, { x: 0.5, y: 2.4 });
+        s2.addText(`Realizó: ${realizo}`, { x: 0.5, y: 3.0 });
+        s2.addText(`Firma: ${firma_nombre}`, { x: 0.5, y: 3.6 });
+        s2.addText(`Fecha del evento: ${fecha_evento}`, { x: 0.5, y: 4.2 });
+
+        // --- SLIDE 3: D2 OBJETIVO Y BENEFICIARIOS ---
+        let s3 = pres.addSlide();
+        s3.addText("OBJETIVO Y BENEFICIARIOS", { x: 0.5, y: 0.3, fontSize: 22, bold: true });
+        s3.addText(`Línea de acción PbRM: ${linea_accion}`, { x: 0.5, y: 1.2 });
+        s3.addText(`Objetivo del evento:\n${objetivo_evento}`, { x: 0.5, y: 1.8, fontSize: 14 });
+        s3.addText(`Número de Beneficiarios: ${num_beneficiarios}`, { x: 0.5, y: 3.5 });
+
+        // --- SLIDE 4: JUSTIFICACION ---
+        let s4 = pres.addSlide();
+        s4.addText("JUSTIFICACIÓN", { x: 0.5, y: 0.3, fontSize: 22, bold: true });
+        s4.addText(justificacion || "Sin justificación", { x: 0.5, y: 1.2, fontSize: 14, w: 9 });
+
+        // --- SLIDE 5: GENERALES DEL EVENTO ---
+        let s5 = pres.addSlide();
+        s5.addText("GENERALES DEL EVENTO", { x: 0.5, y: 0.3, fontSize: 22, bold: true });
+        s5.addText(`Fecha: ${gen_fecha}\nHora: ${gen_hora}\nLugar: ${gen_lugar}\nVestimenta: ${gen_vestimenta}\nDuración: ${gen_duracion}\nCoordinación: ${gen_coordinacion}\nResponsable: ${gen_responsable}`, { x: 0.5, y: 1.2, fontSize: 14 });
+
+        // --- SLIDE 6: UBICACIÓN (fotos) ---
+        let s6 = pres.addSlide();
+        s6.addText("UBICACIÓN DEL EVENTO", { x: 0.5, y: 0.3, fontSize: 22, bold: true });
+        s6.addText(`Dirección: ${ubic_direccion}`, { x: 0.5, y: 1.0 });
+        s6.addText(`Link: ${ubic_link}`, { x: 0.5, y: 1.5 });
+        if (fotoLugarBase64) s6.addImage({ data: fotoLugarBase64, x: 0.5, y: 2.2, w: 4, h: 2.5 });
+        if (fotoMapsBase64) s6.addImage({ data: fotoMapsBase64, x: 5, y: 2.2, w: 4, h: 2.5 });
+
+        // --- SLIDE 7: ORDEN DEL DÍA (tabla) ---
+        let s7 = pres.addSlide();
+        s7.addText("ORDEN DEL DÍA - PROGRAMA PROTOCOLARIO", { x: 0.5, y: 0.3, fontSize: 18, bold: true });
+        if(agendaRows.length) {
+            const matrix = [["Hora", "Actividad", "Responsable", "Duración"]];
+            agendaRows.forEach(r => matrix.push([r.hora, r.actividad, r.responsable, r.duracion]));
+            s7.addTable(matrix, { x: 0.5, y: 1.0, w: 9, colW: [1.5, 3.5, 2.5, 1.5], fontSize: 10 });
+        } else {
+            s7.addText("No se registraron actividades", { x: 0.5, y: 1.5 });
+        }
+
+        // --- SLIDE 8: EVENTO PROTOCOLARIO + FIN DEL EVENTO ---
+        let s8 = pres.addSlide();
+        s8.addText("EVENTO PROTOCOLARIO Y CIERRE", { x: 0.5, y: 0.3, fontSize: 22, bold: true });
+        s8.addText(`Programa protocolario:\n${evento_protocolario}`, { x: 0.5, y: 1.2, fontSize: 14 });
+        s8.addText(`Fin del evento - Duración total: ${duracion_total_evento}`, { x: 0.5, y: 3.0, fontSize: 14, bold: true });
+
+        // --- SLIDE 9: PRESIDIUM ---
+        let s9 = pres.addSlide();
+        s9.addText("PRESIDIUM", { x: 0.5, y: 0.3, fontSize: 22, bold: true });
+        s9.addText(presidium_lista || "No especificado", { x: 0.5, y: 1.2, fontSize: 14 });
+
+        // --- SLIDE 10: CROQUIS ---
+        let s10 = pres.addSlide();
+        s10.addText("CROQUIS DEL EVENTO", { x: 0.5, y: 0.3, fontSize: 22, bold: true });
+        if(croquisBase64) s10.addImage({ data: croquisBase64, x: 1, y: 1.2, w: 7, h: 4 });
+        s10.addText(`Pantalla / Nota: ${croquis_pantalla}`, { x: 0.5, y: 5.2, fontSize: 12 });
+
+        // --- SLIDE 11: INTEGRANTES DE CABILDO ---
+        let s11 = pres.addSlide();
+        s11.addText("INVITADOS - INTEGRANTES DE CABILDO", { x: 0.5, y: 0.3, fontSize: 20, bold: true });
+        s11.addText(invitados_cabildo || "---", { x: 0.5, y: 1.2, fontSize: 14 });
+
+        // --- SLIDE 12: INTEGRANTES DE GABINETE ---
+        let s12 = pres.addSlide();
+        s12.addText("INVITADOS - INTEGRANTES DE GABINETE", { x: 0.5, y: 0.3, fontSize: 20, bold: true });
+        s12.addText(invitados_gabinete || "---", { x: 0.5, y: 1.2, fontSize: 14 });
+
+        // --- SLIDE 13: REQUERIMIENTOS Delegación Administrativa ---
+        let s13 = pres.addSlide();
+        s13.addText("REQUERIMIENTOS - DELEGACIÓN ADMINISTRATIVA", { x: 0.5, y: 0.3, fontSize: 18, bold: true });
+        s13.addText(req_administrativa || "Sin especificar", { x: 0.5, y: 1.2, fontSize: 14 });
+
+        // --- SLIDE 14: REQUERIMIENTOS Coordinación Comunicación Social ---
+        let s14 = pres.addSlide();
+        s14.addText("REQUERIMIENTOS - COORD. COMUNICACIÓN SOCIAL", { x: 0.5, y: 0.3, fontSize: 18, bold: true });
+        s14.addText(req_comunicacion || "Sin especificar", { x: 0.5, y: 1.2, fontSize: 14 });
+
+        // --- SLIDE 15: REQUERIMIENTOS Dirección General de Administración ---
+        let s15 = pres.addSlide();
+        s15.addText("REQUERIMIENTOS - DIRECCIÓN GRAL. DE ADMINISTRACIÓN", { x: 0.5, y: 0.3, fontSize: 18, bold: true });
+        s15.addText(req_administracion || "Sin especificar", { x: 0.5, y: 1.2, fontSize: 14 });
+
+        // --- SLIDE 16: REQUERIMIENTOS FINALES + FIRMAS (D11) ---
+        let s16 = pres.addSlide();
+        s16.addText("REQUERIMIENTOS ADICIONALES Y FIRMAS", { x: 0.5, y: 0.3, fontSize: 20, bold: true });
+        s16.addText(`Delegación Administrativa:\n${del_admin_req}`, { x: 0.5, y: 1.0, fontSize: 12 });
+        s16.addText(`Eventos y Ubicación:\nDía: ${evento_dia} | Horario: ${evento_horario}\nUbicación: ${evento_ubicacion}`, { x: 0.5, y: 2.5, fontSize: 12 });
+        s16.addText(`Firma 1: ${firma1}\nFirma 2: ${firma2}`, { x: 0.5, y: 4.0, fontSize: 14, bold: true });
+
+        // Descargar
+        await pres.writeFile({ fileName: `Presentacion_${evento_nombre.replace(/\s/g, "_") || "evento"}.pptx` });
+        alert("¡PowerPoint generado con éxito! Revisa la descarga.");
+    });
+</script>
+</body>
+</html>
