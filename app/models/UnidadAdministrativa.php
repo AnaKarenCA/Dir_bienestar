@@ -14,4 +14,11 @@ class UnidadAdministrativa extends Model
 
         return $stmt->fetchAll();
     }
+    public function obtenerPorId($id)
+{
+    $sql = "SELECT * FROM unidad_administrativa WHERE id = ?";
+    $stmt = $this->db->query($sql);
+    $stmt->execute([$id]);
+    return $stmt->fetch();
+}
 }

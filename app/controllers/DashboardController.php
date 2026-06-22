@@ -64,4 +64,16 @@ class DashboardController extends Controller
         $model = $this->model('CodigoPostal');
         echo json_encode($model->obtenerPorSubdelegacion($subdelegacionId));
     }
+    public function codigosPostalesPorDelegacion($delegacionId)
+{
+    header('Content-Type: application/json');
+    $model = $this->model('CodigoPostal');
+    echo json_encode($model->obtenerPorDelegacion($delegacionId));
+}
+public function obtenerTodasConCodigo()
+{
+    $stmt = $this->db->query("SELECT id, descripcion, codigo FROM Actividad_programada ORDER BY codigo");
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
 }

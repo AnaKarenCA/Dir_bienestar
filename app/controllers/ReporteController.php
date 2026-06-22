@@ -12,72 +12,95 @@ class ReporteController extends Controller
 
     public function index()
     {
-        // Cargar unidades y actividades para los filtros
+        // Cargar unidades para el filtro
         $unidadModel = $this->model('UnidadAdministrativa');
-        $actividadModel = $this->model('ActividadProgramada');
-        
         $unidades = $unidadModel->obtenerTodas();
-        $actividades = $actividadModel->obtenerTodasConCodigo(); // asumiendo que existe este método
-        
+
         $this->view('reportes/index', [
-            'unidades' => $unidades,
-            'actividades' => $actividades
+            'unidades' => $unidades
         ]);
     }
-    
+
+    /**
+     * Endpoint AJAX para obtener datos del reporte
+     */
     public function data()
     {
         header('Content-Type: application/json');
-        
-        $year = $_GET['year'] ?? date('Y');
-        $periodo = $_GET['periodo'] ?? 'mensual'; // mensual, trimestral, semestral, anual
-        $periodoValor = $_GET['periodo_valor'] ?? null;
+
+        $anio = $_GET['anio'] ?? date('Y');
+        $periodoTipo = $_GET['periodo_tipo'] ?? 'mensual';
+        $periodoValor = $_GET['periodo_valor'] ?? date('n');
         $unidadId = $_GET['unidad_id'] ?? null;
-        $actividadId = $_GET['actividad_id'] ?? null;
-        
-        $registroModel = $this->model('RegistroActividad');
-        
-        // Obtener conteo real de actividades según filtros
-        $conteos = $registroModel->obtenerConteoPorActividad($year, $periodo, $periodoValor, $unidadId, $actividadId);
-        
-        // Metas (por ahora fijas, después vendrán de la tabla meta_actividad_periodo)
-        $metas = $this->getMetasPorActividad();
-        
-        // Construir respuesta con avance
+
+        // Si no hay unidad seleccionada, devolver vacío
+        if (!$unidadId) {
+            echo json_encode([]);
+            return;
+        }
+
+        // Obtener actividades de la unidad
+        $actividadModel = $this->model('ActividadProgramada');
+        $actividades = $actividadModel->obtenerPorUnidad($unidadId);
+        if (empty($actividades)) {
+            echo json_encode([]);
+            return;
+        }
+
+        // Calcular rango de fechas según período
+        $fechas = $this->calcularRangoFechas($anio, $periodoTipo, $periodoValor);
+        $fechaInicio = $fechas['inicio'];
+        $fechaFin = $fechas['fin'];
+
+        // Preparar respuesta
         $resultado = [];
-        foreach ($metas as $metaActividad) {
-            $nombre = $metaActividad['nombre'];
-            $meta = $metaActividad['meta'];
-            $registrado = $conteos[$nombre] ?? 0;
+        $metaModel = $this->model('MetaActividadPeriodo');
+        $registroModel = $this->model('RegistroActividad');
+
+        foreach ($actividades as $act) {
+            $actividadId = $act['id'];
+            $meta = $metaModel->obtenerMeta($actividadId, $unidadId, $anio, $periodoTipo, $periodoValor);
+            $registrado = $registroModel->contarPorActividadYPeriodo($actividadId, $fechaInicio, $fechaFin);
             $diferencia = $meta - $registrado;
-            $avance = $meta > 0 ? min(100, round(($registrado / $meta) * 100)) : 0;
-            
+            $avance = ($meta > 0) ? round(($registrado / $meta) * 100, 2) : 0;
+
             $resultado[] = [
-                'actividad' => $nombre,
+                'actividad_id' => $actividadId,
+                'actividad' => $act['descripcion'],
                 'meta' => $meta,
                 'registrado' => $registrado,
                 'diferencia' => $diferencia,
                 'avance' => $avance
             ];
         }
-        
+
         echo json_encode($resultado);
     }
-    
-    private function getMetasPorActividad()
+
+    /**
+     * Calcula fecha inicio y fin según el período
+     */
+    private function calcularRangoFechas($anio, $periodoTipo, $periodoValor)
     {
-        // Aquí deberías consultar las metas reales desde la base de datos
-        // Por ahora usamos valores de ejemplo basados en tu dump
-        return [
-            ['nombre' => 'Supervisar los programas y eventos de las áreas de Bienestar.', 'meta' => 10],
-            ['nombre' => 'Coordinar la instalación e integración del Consejo Municipal de Población (COMUPO).', 'meta' => 5],
-            ['nombre' => 'Coordinar las actividades y sesiones orientadas al fortalecimiento del COMUPO.', 'meta' => 8],
-            ['nombre' => 'Atender y dar seguimiento a las audiencias y peticiones ciudadanas.', 'meta' => 20],
-            ['nombre' => 'Monitorear y dar seguimiento al sistema de acceso a la información pública.', 'meta' => 12],
-            ['nombre' => 'Atender y resolver los recursos de información presentados.', 'meta' => 15],
-            ['nombre' => 'Actualizar el portal de información pública.', 'meta' => 6],
-            ['nombre' => 'Organizar y realizar eventos de la Dirección General de Bienestar.', 'meta' => 4],
-            ['nombre' => 'Planear y dar seguimiento a la agenda del proyecto insignia.', 'meta' => 3],
-        ];
+        $inicio = null;
+        $fin = null;
+
+        if ($periodoTipo === 'mensual') {
+            $inicio = "$anio-" . str_pad($periodoValor, 2, '0', STR_PAD_LEFT) . "-01";
+            $fin = date("Y-m-t", strtotime($inicio));
+        } elseif ($periodoTipo === 'trimestral') {
+            $mesInicio = ($periodoValor - 1) * 3 + 1;
+            $inicio = "$anio-" . str_pad($mesInicio, 2, '0', STR_PAD_LEFT) . "-01";
+            $fin = date("Y-m-t", strtotime("$anio-" . str_pad($mesInicio + 2, 2, '0', STR_PAD_LEFT) . "-01"));
+        } elseif ($periodoTipo === 'semestral') {
+            $mesInicio = ($periodoValor - 1) * 6 + 1;
+            $inicio = "$anio-" . str_pad($mesInicio, 2, '0', STR_PAD_LEFT) . "-01";
+            $fin = date("Y-m-t", strtotime("$anio-" . str_pad($mesInicio + 5, 2, '0', STR_PAD_LEFT) . "-01"));
+        } elseif ($periodoTipo === 'anual') {
+            $inicio = "$anio-01-01";
+            $fin = "$anio-12-31";
+        }
+
+        return ['inicio' => $inicio, 'fin' => $fin];
     }
 }

@@ -1,268 +1,8 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Actividades | Toluca</title>
-    <link rel="stylesheet" href="/css/dashboard.css">
-    <style>
-        /* Estilos extra para las filas dinámicas */
-        .days-container {
-            grid-column: span 2;
-            background: #f9f4ed;
-            border-radius: 24px;
-            padding: 16px 18px;
-            border: 1px solid #e2d4c4;
-        }
-        .days-container label {
-            font-weight: 700;
-            font-size: 0.8rem;
-            color: #a90303;
-            display: block;
-            margin-bottom: 10px;
-        }
-        .day-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-items: center;
-            background: white;
-            padding: 12px 14px;
-            border-radius: 20px;
-            margin-bottom: 10px;
-            border: 1px solid #e2d4c4;
-        }
-        .day-row .field-group {
-            flex: 1;
-            min-width: 120px;
-            margin: 0;
-        }
-        .day-row .field-group label {
-            font-size: 0.6rem;
-            color: #6d4c2a;
-            margin-bottom: 2px;
-        }
-        .day-row .field-group input {
-            padding: 6px 10px;
-            border-radius: 20px;
-            border: 1px solid #d0c0b0;
-            font-size: 0.75rem;
-            width: 100%;
-        }
-        .remove-day-btn {
-            background: #d32f2f;
-            color: white;
-            border: none;
-            border-radius: 40px;
-            padding: 6px 14px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 0.7rem;
-            align-self: flex-end;
-            margin-bottom: 2px;
-        }
-        .remove-day-btn:hover {
-            background: #b71c1c;
-        }
-        .add-day-btn {
-            background: #2e7d32;
-            color: white;
-            border: none;
-            border-radius: 40px;
-            padding: 8px 20px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 0.8rem;
-            margin-top: 8px;
-        }
-        .add-day-btn:hover {
-            background: #1b5e20;
-        }
-        @media (max-width: 850px) {
-            .days-container {
-                grid-column: span 1;
-            }
-            .day-row {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .day-row .field-group {
-                min-width: 100%;
-            }
-        }
-    </style>
-</head>
-<body>
-<?php include_once APPROOT . '/views/partials/menu.php'; ?>
-
-<div class="dashboard">
-    <div class="logos-col">
-        <img src="/img/tol.png" alt="Toluca">
-    </div>
-    <div class="form-col">
-        <div class="form-card">
-            <div class="card-header">
-                <h1>Registro de Actividades</h1>
-                <p>Captura de actividades operativas - Verifica antes de guardar</p>
-            </div>
-
-            <form id="activityForm">
-                <div class="form-grid">
-                    <!-- Responsable -->
-                    <div class="field-group">
-                        <label>Responsable</label>
-                        <input type="text" id="responsable" readonly value="<?= htmlspecialchars($responsable) ?>">
-                    </div>
-
-                    <!-- Unidad Administrativa -->
-                    <div class="field-group">
-                        <label>Unidad Administrativa *</label>
-                        <select id="unidad_administrativa_id" required>
-                            <option value="">Seleccione...</option>
-                            <?php foreach ($unidades as $u): ?>
-                                <option value="<?= $u['id'] ?>"><?= htmlspecialchars($u['nombre']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <!-- Actividad -->
-                    <div class="field-group">
-                        <label>Actividad *</label>
-                        <select id="actividad_programada_id" required disabled>
-                            <option value="">Primero seleccione unidad</option>
-                        </select>
-                    </div>
-
-                    <!-- Unidad de medida -->
-                    <div class="field-group">
-                        <label>Unidad de medida</label>
-                        <input type="text" id="unidad_medida_nombre" readonly placeholder="Seleccione actividad">
-                        <input type="hidden" id="unidad_medida_id">
-                    </div>
-
-                    <!-- Lugar con "Otro" -->
-                    <div class="field-group">
-                        <label>Lugar *</label>
-                        <select id="lugar_id" required>
-                            <option value="">Seleccione...</option>
-                            <?php foreach ($lugares as $l): ?>
-                                <option value="<?= $l['id'] ?>"><?= htmlspecialchars($l['nombre']) ?></option>
-                            <?php endforeach; ?>
-                            <option value="0">Otro (especificar)</option>
-                        </select>
-                        <div id="otro_lugar_container" class="hidden">
-                            <input type="text" id="otro_lugar" placeholder="Escriba el nuevo lugar">
-                        </div>
-                    </div>
-
-                    <!-- Delegación -->
-                    <div class="field-group">
-                        <label>Delegación *</label>
-                        <select id="delegacion_id" required>
-                            <option value="">Seleccione...</option>
-                            <?php foreach ($delegaciones as $d): ?>
-                                <option value="<?= $d['id'] ?>"><?= htmlspecialchars($d['nombre']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <!-- Subdelegación (opcional) -->
-                    <div class="field-group">
-                        <label>Subdelegación (opcional)</label>
-                        <select id="subdelegacion_id">
-                            <option value="">No aplica</option>
-                        </select>
-                    </div>
-
-                    <!-- Código Postal -->
-                    <div class="field-group" id="cp_group" style="display:none;">
-                        <label>Código Postal *</label>
-                        <select id="cp_select" required>
-                            <option value="">Seleccione CP</option>
-                        </select>
-                    </div>
-
-                    <!-- Domicilio -->
-                    <div class="field-group">
-                        <label>Calle *</label>
-                        <input type="text" id="calle" required>
-                    </div>
-                    <div class="field-group">
-                        <label>Número exterior *</label>
-                        <input type="text" id="numero_exterior" required>
-                    </div>
-                    <div class="field-group">
-                        <label>Número interior</label>
-                        <input type="text" id="numero_interior">
-                    </div>
-
-                    <!-- Beneficiarios -->
-                    <div class="field-group">
-                        <label>Beneficiarios / Asistentes *</label>
-                        <input type="number" id="beneficiarios_asistentes" min="1" required>
-                    </div>
-
-                    <!-- Tipo entregable -->
-                    <div class="field-group">
-                        <label>Tipo de entregable *</label>
-                        <select id="tipo_entregable_id" required>
-                            <option value="">Seleccione...</option>
-                            <?php foreach ($tiposEntregable as $te): ?>
-                                <option value="<?= $te['id'] ?>"><?= htmlspecialchars($te['nombre_entregable']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <!-- Descripción -->
-                    <div class="field-group full-width">
-                        <label>Descripción *</label>
-                        <textarea id="descripcion" rows="3" required></textarea>
-                    </div>
-
-                    <!-- Días dinámicos -->
-                    <div class="days-container full-width" id="daysContainer">
-                        <label>📅 Días y horarios *</label>
-                        <div id="daysList">
-                            <!-- Las filas se agregarán aquí dinámicamente -->
-                        </div>
-                        <button type="button" class="add-day-btn" id="addDayBtn">+ Agregar día</button>
-                    </div>
-                </div>
-
-                <div class="actions-bar">
-                    <button type="button" class="btn btn-secondary" id="limpiarBtn">Limpiar</button>
-                    <button type="button" class="btn btn-primary" id="guardarBtn">Guardar</button>
-                </div>
-                <div class="warning-note">
-                    ⚠️ Verifique los datos. Al guardar se abrirá un modal de confirmación y se registrará en la base de datos.
-                </div>
-            </form>
-        </div>
-        <footer>Sistema oficial de registro | Datos protegidos: Hecho por: </footer>
-    </div>
-</div>
-
-<!-- Modal de confirmación -->
-<div id="confirmModal" class="modal-overlay">
-    <div class="modal-container">
-        <div class="modal-header">
-            <h3>Confirmar registro</h3>
-            <button class="close-modal" id="closeModalBtn">&times;</button>
-        </div>
-        <div class="modal-body" id="modalDataSummary"></div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" id="cancelModalBtn">Cancelar</button>
-            <button class="btn btn-primary" id="confirmSaveBtn">Confirmar</button>
-        </div>
-    </div>
-</div>
-
-<script>
     const BASE_URL = '/Dir_bienestar';
     const modal = document.getElementById('confirmModal');
     let currentFormData = null;
 
-    // Elementos principales
+    // Elementos
     const unidadSelect = document.getElementById('unidad_administrativa_id');
     const actividadSelect = document.getElementById('actividad_programada_id');
     const unidadMedidaNombre = document.getElementById('unidad_medida_nombre');
@@ -277,13 +17,12 @@
     const calleInput = document.getElementById('calle');
     const numeroExteriorInput = document.getElementById('numero_exterior');
     const descripcionInput = document.getElementById('descripcion');
-    const beneficiariosInput = document.getElementById('beneficiarios_asistentes');
-    const tipoEntregableSelect = document.getElementById('tipo_entregable_id');
-    const daysList = document.getElementById('daysList');
-    const addDayBtn = document.getElementById('addDayBtn');
+    const fechaInicioInput = document.getElementById('fecha_inicio');
+    const fechaFinInput = document.getElementById('fecha_fin');
+    const horaInicioInput = document.getElementById('hora_inicio');
+    const horaFinInput = document.getElementById('hora_fin');
 
     let allCps = [];
-    let dayCount = 0;
 
     // --- Validar formato mixto ---
     function validarFormatoMixto(texto) {
@@ -349,7 +88,7 @@
         }
     });
 
-    // --- Delegación: cargar subdelegaciones y CPs (igual que antes) ---
+    // --- Delegación: cargar subdelegaciones y CPs ---
     delegacionSelect.addEventListener('change', async function() {
         const delegacionId = this.value;
         subdelegacionSelect.innerHTML = '<option value="">Cargando...</option>';
@@ -471,98 +210,27 @@
         }
     });
 
-    // --- Funciones para manejar días dinámicos ---
-    function createDayRow(fecha = '', horaInicio = '', horaFin = '') {
-        const rowDiv = document.createElement('div');
-        rowDiv.className = 'day-row';
-        rowDiv.dataset.index = dayCount++;
-
-        rowDiv.innerHTML = `
-            <div class="field-group">
-                <label>Fecha</label>
-                <input type="date" class="day-fecha" value="${fecha}" required>
-            </div>
-            <div class="field-group">
-                <label>Hora inicio</label>
-                <input type="time" class="day-hora-inicio" value="${horaInicio}" required>
-            </div>
-            <div class="field-group">
-                <label>Hora fin</label>
-                <input type="time" class="day-hora-fin" value="${horaFin}" required>
-            </div>
-            <button type="button" class="remove-day-btn" title="Eliminar día">✕ Eliminar</button>
-        `;
-
-        // Evento para eliminar
-        rowDiv.querySelector('.remove-day-btn').addEventListener('click', function() {
-            if (daysList.children.length > 1) {
-                rowDiv.remove();
-            } else {
-                mostrarToast('Debe haber al menos un día', true);
-            }
-        });
-
-        return rowDiv;
-    }
-
-    function addDefaultDay() {
-        // Si no hay días, agregar uno con la fecha actual y horas por defecto (ej. 09:00 - 18:00)
-        const hoy = new Date().toISOString().split('T')[0];
-        const row = createDayRow(hoy, '09:00', '18:00');
-        daysList.appendChild(row);
-    }
-
-    // Inicializar con un día
-    addDefaultDay();
-
-    // Botón agregar día
-    addDayBtn.addEventListener('click', function() {
-        const ultimaFecha = daysList.lastElementChild?.querySelector('.day-fecha')?.value || '';
-        const ultimaHoraInicio = daysList.lastElementChild?.querySelector('.day-hora-inicio')?.value || '09:00';
-        const ultimaHoraFin = daysList.lastElementChild?.querySelector('.day-hora-fin')?.value || '18:00';
-        const row = createDayRow(ultimaFecha, ultimaHoraInicio, ultimaHoraFin);
-        daysList.appendChild(row);
-    });
-
-    // --- Obtener datos del formulario ---
+    // --- Obtener datos ---
     function getFormData() {
-        const lugar_id = lugarSelect.value;
-        const otro_lugar = (lugar_id === '0') ? otroLugarInput.value.trim() : '';
-        const cp = cpSelect.value ? cpSelect.value : null;
-        const subdelegacion_id = subdelegacionSelect.value || null;
+        let lugar_id = lugarSelect.value;
+        let otro_lugar = (lugar_id === '0') ? otroLugarInput.value.trim() : '';
+        let cp = cpSelect.value ? cpSelect.value : null;
+        let subdelegacion_id = subdelegacionSelect.value || null;
 
         const calle = calleInput.value.trim();
         const numeroExterior = numeroExteriorInput.value.trim();
         const numeroInterior = document.getElementById('numero_interior').value ? document.getElementById('numero_interior').value.trim() : null;
         const descripcion = descripcionInput.value.trim();
-        const beneficiarios = beneficiariosInput.value;
-        const tipoEntregable = tipoEntregableSelect.value;
-
-        // Recolectar días
-        const days = [];
-        const rows = daysList.querySelectorAll('.day-row');
-        let valid = true;
-        rows.forEach(row => {
-            const fecha = row.querySelector('.day-fecha').value;
-            const horaInicio = row.querySelector('.day-hora-inicio').value;
-            const horaFin = row.querySelector('.day-hora-fin').value;
-            if (fecha && horaInicio && horaFin) {
-                days.push({ fecha, hora_inicio: horaInicio, hora_fin: horaFin });
-            } else {
-                valid = false;
-            }
-        });
-
-        if (!valid) {
-            mostrarToast('Complete todos los campos de fecha y hora para cada día', true);
-            return null;
-        }
 
         return {
             responsable: document.getElementById('responsable').value,
             unidad_administrativa_id: unidadSelect.value,
             actividad_programada_id: actividadSelect.value,
             unidad_medida_id: unidadMedidaIdHidden.value,
+            fecha_inicio: fechaInicioInput.value,
+            fecha_fin: fechaFinInput.value,
+            hora_inicio: horaInicioInput.value,
+            hora_fin: horaFinInput.value,
             lugar_id: lugar_id,
             otro_lugar: otro_lugar,
             delegacion_id: delegacionSelect.value,
@@ -571,18 +239,26 @@
             calle: calle,
             numero_exterior: numeroExterior,
             numero_interior: numeroInterior,
-            beneficiarios_asistentes: beneficiarios,
-            tipo_entregable_id: tipoEntregable,
-            descripcion: descripcion,
-            dias: days
+            beneficiarios_asistentes: document.getElementById('beneficiarios_asistentes').value,
+            tipo_entregable_id: document.getElementById('tipo_entregable_id').value,
+            descripcion: descripcion
         };
     }
 
     // --- Validación ---
     function validate(data) {
-        if (!data) return false;
         if (!data.unidad_administrativa_id) { mostrarToast('Seleccione unidad administrativa', true); return false; }
         if (!data.actividad_programada_id) { mostrarToast('Seleccione actividad', true); return false; }
+        if (!data.fecha_inicio) { mostrarToast('Ingrese fecha inicio', true); return false; }
+        if (!data.fecha_fin) { mostrarToast('Ingrese fecha fin', true); return false; }
+        if (data.fecha_fin < data.fecha_inicio) { mostrarToast('La fecha fin no puede ser anterior a la fecha inicio', true); return false; }
+        if (!data.hora_inicio) { mostrarToast('Ingrese hora inicio', true); return false; }
+        if (!data.hora_fin) { mostrarToast('Ingrese hora fin', true); return false; }
+        // Validación CRÍTICA: hora fin debe ser mayor que hora inicio
+        if (data.hora_fin <= data.hora_inicio) {
+            mostrarToast('La hora fin debe ser mayor que la hora inicio', true);
+            return false;
+        }
         if (!data.lugar_id) { mostrarToast('Seleccione lugar', true); return false; }
         if (data.lugar_id === '0' && !data.otro_lugar) { mostrarToast('Especifique el nuevo lugar', true); return false; }
         if (!data.delegacion_id) { mostrarToast('Seleccione delegación', true); return false; }
@@ -598,18 +274,10 @@
         if (!data.tipo_entregable_id) { mostrarToast('Seleccione tipo de entregable', true); return false; }
         if (!data.descripcion) { mostrarToast('Ingrese descripción', true); return false; }
         if (!validarFormatoMixto(data.descripcion)) { mostrarToast('La descripción debe tener al menos una mayúscula y una minúscula', true); return false; }
-        if (!data.dias || data.dias.length === 0) { mostrarToast('Agregue al menos un día con su horario', true); return false; }
-        // Validar que cada día tenga hora fin > hora inicio
-        for (let d of data.dias) {
-            if (d.hora_fin <= d.hora_inicio) {
-                mostrarToast(`En la fecha ${d.fecha}, la hora fin debe ser mayor que la hora inicio`, true);
-                return false;
-            }
-        }
         return true;
     }
 
-    // --- Mostrar modal ---
+    // --- Modal ---
     function showModal(data) {
         const container = document.getElementById('modalDataSummary');
         let lugarTexto = lugarSelect.options[lugarSelect.selectedIndex]?.text;
@@ -620,36 +288,38 @@
         let unidadTexto = unidadSelect.options[unidadSelect.selectedIndex]?.text || '';
         let actividadTexto = actividadSelect.options[actividadSelect.selectedIndex]?.text || '';
 
-        // Construir resumen de días
-        let diasHtml = '';
-        data.dias.forEach((d, i) => {
-            diasHtml += `<div style="font-size:0.75rem; padding:4px 0; border-bottom:1px dashed #e7ddcd;">
-                <strong>Día ${i+1}:</strong> ${d.fecha} · ${d.hora_inicio} - ${d.hora_fin}
-            </div>`;
-        });
+        let periodoTexto = data.fecha_inicio;
+        if (data.fecha_fin && data.fecha_fin !== data.fecha_inicio) {
+            periodoTexto += ` al ${data.fecha_fin}`;
+        }
+        periodoTexto += ` ${data.hora_inicio} - ${data.hora_fin}`;
 
         container.innerHTML = `
             <div class="summary-row"><span class="summary-label">Responsable:</span><span>${escapeHtml(data.responsable)}</span></div>
             <div class="summary-row"><span class="summary-label">Unidad:</span><span>${escapeHtml(unidadTexto)}</span></div>
             <div class="summary-row"><span class="summary-label">Actividad:</span><span>${escapeHtml(actividadTexto)}</span></div>
+            <div class="summary-row"><span class="summary-label">Período:</span><span>${escapeHtml(periodoTexto)}</span></div>
             <div class="summary-row"><span class="summary-label">Lugar:</span><span>${escapeHtml(lugarTexto)}</span></div>
             <div class="summary-row"><span class="summary-label">Delegación:</span><span>${escapeHtml(delegTexto)}</span></div>
             <div class="summary-row"><span class="summary-label">Subdelegación:</span><span>${escapeHtml(subTexto)}</span></div>
             <div class="summary-row"><span class="summary-label">Código Postal:</span><span>${escapeHtml(cpTexto)}</span></div>
             <div class="summary-row"><span class="summary-label">Domicilio:</span><span>${escapeHtml(data.calle)} ${escapeHtml(data.numero_exterior)}, Int. ${escapeHtml(data.numero_interior || '')}</span></div>
             <div class="summary-row"><span class="summary-label">Beneficiarios:</span><span>${data.beneficiarios_asistentes}</span></div>
-            <div class="summary-row"><span class="summary-label">Entregable:</span><span>${escapeHtml(tipoEntregableSelect.options[tipoEntregableSelect.selectedIndex]?.text || '')}</span></div>
+            <div class="summary-row"><span class="summary-label">Entregable:</span><span>${escapeHtml(document.getElementById('tipo_entregable_id').options[document.getElementById('tipo_entregable_id').selectedIndex]?.text || '')}</span></div>
             <div class="summary-row"><span class="summary-label">Descripción:</span><span>${escapeHtml(data.descripcion)}</span></div>
-            <div class="summary-row" style="grid-column: span 2; background:#f9f2ea; border-radius:12px; padding:10px;">
-                <span class="summary-label">📅 Días y horarios:</span>
-                <div style="margin-top:6px;">${diasHtml}</div>
-                <div style="margin-top:6px; font-size:0.7rem; color:#800000;">⚠️ Se generarán ${data.dias.length} registros (uno por cada día)</div>
-            </div>
+            ${data.fecha_fin !== data.fecha_inicio ? `<div class="summary-row" style="color:#a90303; font-weight:bold;"><span colspan="2">⚠️ Se generarán ${calcularDiferenciaDias(data.fecha_inicio, data.fecha_fin)} registros (uno por día)</span></div>` : ''}
         `;
         modal.classList.add('active');
     }
 
-    // --- Enviar registro ---
+    function calcularDiferenciaDias(fechaInicio, fechaFin) {
+        const inicio = new Date(fechaInicio);
+        const fin = new Date(fechaFin);
+        const diffTime = Math.abs(fin - inicio);
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    }
+
+    // --- Enviar ---
     async function enviarRegistro(data) {
         try {
             const response = await fetch(`${BASE_URL}/actividad/guardar`, {
@@ -659,8 +329,8 @@
             });
             const result = await response.json();
             if (result.success) {
-                const msg = result.registros > 1 ?
-                    `${result.registros} registros guardados exitosamente` :
+                const msg = result.registros > 1 ? 
+                    `${result.registros} registros guardados exitosamente` : 
                     'Registro guardado exitosamente';
                 mostrarToast(msg);
                 limpiarFormulario();
@@ -702,13 +372,15 @@
         unidadMedidaNombre.value = '';
         unidadMedidaIdHidden.value = '';
         allCps = [];
-        // Limpiar días: dejar solo uno
-        daysList.innerHTML = '';
-        dayCount = 0;
-        addDefaultDay();
+        const hoy = new Date().toISOString().split('T')[0];
+        fechaInicioInput.value = hoy;
+        fechaFinInput.value = hoy;
+        // Limpiar valores de hora (opcional)
+        horaInicioInput.value = '';
+        horaFinInput.value = '';
     }
 
-    // --- Eventos de botones ---
+    // --- Eventos ---
     document.getElementById('guardarBtn').addEventListener('click', () => {
         const data = getFormData();
         if (!validate(data)) return;
@@ -730,6 +402,9 @@
             return m;
         });
     }
-</script>
-</body>
-</html>
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const hoy = new Date().toISOString().split('T')[0];
+        fechaInicioInput.value = hoy;
+        fechaFinInput.value = hoy;
+    });

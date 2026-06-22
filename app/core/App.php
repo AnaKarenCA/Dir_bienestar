@@ -36,15 +36,25 @@ class App
                     break;
 
                 case 'reporte':
-    require_once APPROOT . '/controllers/ReporteController.php';
-    $this->controller = 'ReporteController';
-    break;
-                
+                    require_once APPROOT . '/controllers/ReporteController.php';
+                    $this->controller = 'ReporteController';
+                    break;
+                case 'eventos':
+                    require_once APPROOT . '/controllers/EventosController.php';
+                    $this->controller = 'EventosController';
+                    break;
+                case 'evento_ppt':
+                    require_once APPROOT . '/controllers/EventoPPTController.php';
+                    $this->controller = 'EventoPPTController';
+                    break;
+
+                case 'evidencias':
+                    require_once APPROOT . '/controllers/EvidenciasController.php';
+                    $this->controller = 'EvidenciasController';
+                    break;  
             }
         }
-
         $controller = new $this->controller();
-
         if (
     isset($url[1]) &&
     method_exists($controller, $url[1])

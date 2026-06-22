@@ -41,7 +41,8 @@ class AuthController extends Controller
 
             $_SESSION['usuario_id'] = $usuario['id'];
             $_SESSION['usuario_nombre'] = $usuario['nombre'];
-            $_SESSION['rol_id'] = $usuario['rol_id'];
+            $_SESSION['usuario_puesto'] = $usuario['puesto'] ?? '';   // si no existe, vacío
+            $_SESSION['usuario_rol_id'] = $usuario['rol_id'];
 
             header('Location: /Dir_bienestar/dashboard/index');
             exit;

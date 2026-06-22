@@ -47,8 +47,10 @@ class RegistroActividad extends Model
     $sql = "
         SELECT 
             ra.id,
-            ra.fecha_inicio AS fecha,
-            ra.hora_inicio AS hora,
+            ra.fecha_inicio AS fecha_inicio,
+        ra.fecha_fin AS fecha_fin,
+            ra.hora_inicio AS hora_inicio,
+            ra.hora_fin AS hora_fin,
             u.nombre AS responsable,
             u.puesto AS puesto_responsable,
             ua.nombre AS unidad_nombre,
@@ -57,7 +59,7 @@ class RegistroActividad extends Model
             ra.beneficiarios_asistentes AS cantidad,
             ra.descripcion AS descripcion_actividad,
             l.nombre AS lugar_nombre,
-            d.nombre AS delegacion_nombre,
+            COALESCE(d.nombre, dd.nombre) AS delegacion_nombre,
             sd.nombre AS subdelegacion_nombre,
             CONCAT(dom.calle, ' ', dom.numero_exterior, 
                    IFNULL(CONCAT(' Int. ', dom.numero_interior), '')) AS domicilio_completo,
@@ -71,6 +73,7 @@ class RegistroActividad extends Model
         LEFT JOIN Codigo_postal cp ON cp.id = dom.codigo_postal_id
         LEFT JOIN Subdelegacion sd ON sd.id = cp.subdelegacion_id
         LEFT JOIN Delegacion d ON d.id = sd.delegacion_id
+        LEFT JOIN Delegacion dd ON dd.id = cp.delegacion_id   -- Para CPs directos
         WHERE 1=1
     ";
     
@@ -107,10 +110,11 @@ class RegistroActividad extends Model
         $params[] = $filters['actividad_id'];
     }
     if (!empty($filters['domicilio'])) {
-        $sql .= " AND (dom.calle LIKE ? OR dom.numero_exterior LIKE ?)";
-        $params[] = '%' . $filters['domicilio'] . '%';
-        $params[] = '%' . $filters['domicilio'] . '%';
-    }
+    $sql .= " AND (dom.calle LIKE ? OR dom.numero_exterior LIKE ? OR cp.cp LIKE ?)";
+    $params[] = '%' . $filters['domicilio'] . '%';
+    $params[] = '%' . $filters['domicilio'] . '%';
+    $params[] = '%' . $filters['domicilio'] . '%';
+}
     
     $sql .= " ORDER BY ra.fecha_inicio ASC, ra.hora_inicio ASC";
     
@@ -180,5 +184,105 @@ public function obtenerConteoPorActividad($year, $periodo, $periodoValor, $unida
         $conteo[$row['actividad']] = (int)$row['total'];
     }
     return $conteo;
+}
+/**
+ * Cuenta los registros de una actividad en un rango de fechas
+ */
+public function contarPorActividadYPeriodo($actividadId, $fechaInicio, $fechaFin)
+{
+    $sql = "SELECT COUNT(*) as total 
+            FROM registro_actividad 
+            WHERE actividad_programada_id = ? 
+              AND fecha_inicio BETWEEN ? AND ?";
+    $stmt = $this->db->query($sql);
+    $stmt->execute([$actividadId, $fechaInicio, $fechaFin]);
+    $result = $stmt->fetch();
+    return $result ? (int)$result['total'] : 0;
+}
+public function obtenerPorEventoDetalleId($eventoDetalleId)
+{
+    $sql = "SELECT ra.* FROM registro_actividad ra
+            JOIN carpeta c ON c.registro_actividad_id = ra.id
+            JOIN evento_detalle ed ON ed.carpeta_id = c.id
+            WHERE ed.id = ?";
+    $stmt = $this->db->query($sql);
+    $stmt->execute([$eventoDetalleId]);
+    return $stmt->fetchAll();
+}
+public function obtenerRegistrosConCarpeta()
+{
+    $sql = "SELECT 
+                ra.*,
+                u.nombre AS usuario_nombre,
+                u.puesto AS usuario_puesto,
+                ua.nombre AS unidad_nombre,
+                ua.objetivo AS unidad_objetivo,
+                ap.descripcion AS actividad_desc,
+                l.nombre AS lugar_nombre,
+                dom.calle,
+                dom.numero_exterior,
+                dom.numero_interior,
+                cp.cp AS codigo_postal,
+                d.nombre AS delegacion_nombre,
+                sd.nombre AS subdelegacion_nombre,
+                c.id AS carpeta_id,
+                c.direccion_entrega,
+                c.fecha_entrega,
+                c.firma,
+                te.nombre_entregable
+            FROM registro_actividad ra
+            INNER JOIN usuario u ON u.id = ra.usuario_id
+            INNER JOIN unidad_administrativa ua ON ua.id = ra.unidad_administrativa_id
+            LEFT JOIN actividad_programada ap ON ap.id = ra.actividad_programada_id
+            INNER JOIN lugar l ON l.id = ra.lugar_id
+            INNER JOIN domicilio dom ON dom.id = ra.domicilio_id
+            LEFT JOIN codigo_postal cp ON cp.id = dom.codigo_postal_id
+            LEFT JOIN subdelegacion sd ON sd.id = cp.subdelegacion_id
+            LEFT JOIN delegacion d ON d.id = sd.delegacion_id
+            LEFT JOIN carpeta c ON c.registro_actividad_id = ra.id
+            LEFT JOIN tipo_entregable te ON te.id = ra.tipo_entregable_id
+            WHERE ra.tipo_entregable_id = 1
+            ORDER BY ra.fecha_inicio DESC";
+    $stmt = $this->db->query($sql);
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+public function obtenerRegistroCompletoPorId($id)
+{
+    $sql = "SELECT 
+                ra.*,
+                u.nombre AS usuario_nombre,
+                u.puesto AS usuario_puesto,
+                ua.nombre AS unidad_nombre,
+                ua.objetivo AS unidad_objetivo,
+                ap.descripcion AS actividad_desc,
+                ap.codigo AS actividad_codigo,
+                l.nombre AS lugar_nombre,
+                dom.calle,
+                dom.numero_exterior,
+                dom.numero_interior,
+                cp.cp AS codigo_postal,
+                d.nombre AS delegacion_nombre,
+                sd.nombre AS subdelegacion_nombre,
+                c.id AS carpeta_id,
+                c.direccion_entrega,
+                c.fecha_entrega,
+                c.firma,
+                te.nombre_entregable
+            FROM registro_actividad ra
+            INNER JOIN usuario u ON u.id = ra.usuario_id
+            INNER JOIN unidad_administrativa ua ON ua.id = ra.unidad_administrativa_id
+            LEFT JOIN actividad_programada ap ON ap.id = ra.actividad_programada_id
+            INNER JOIN lugar l ON l.id = ra.lugar_id
+            INNER JOIN domicilio dom ON dom.id = ra.domicilio_id
+            LEFT JOIN codigo_postal cp ON cp.id = dom.codigo_postal_id
+            LEFT JOIN subdelegacion sd ON sd.id = cp.subdelegacion_id
+            LEFT JOIN delegacion d ON d.id = sd.delegacion_id
+            LEFT JOIN carpeta c ON c.registro_actividad_id = ra.id
+            LEFT JOIN tipo_entregable te ON te.id = ra.tipo_entregable_id
+            WHERE ra.id = ?";
+    $stmt = $this->db->query($sql);
+    $stmt->execute([$id]);
+    return $stmt->fetch();
 }
 }
